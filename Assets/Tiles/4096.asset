@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21710fc8f7a54e44e9e57598d5697d11, type: 3}
   m_Name: 4096
   m_EditorClassIdentifier: 
-  BackgroundColor: {r: 0.8396226, g: 0.45545566, b: 0.45955408, a: 0}
-  TextColor: {r: 0.9433962, g: 0.6933359, b: 0.6452474, a: 0}
+  backgroundColor: {r: 0.8018868, g: 0.17777678, b: 0.30421045, a: 1}
+  textColor: {r: 0.764151, g: 0.41451588, b: 0.41451588, a: 1}

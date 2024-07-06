@@ -14,11 +14,12 @@ public class TileGrid : MonoBehaviour
     private void Awake()
     {
         rows = GetComponentsInChildren<TileRow>();
-        cells = GetComponentsInChildren<TileCell>();
+        cells = rows[0].cells;
     }
 
     private  void Start()
-    {
+    { 
+        Debug.Log(rows.Length  );
         for (int y = 0; y< rows.Length; y++)
         {
             for (int x = 0; x< cells.Length; x++)

@@ -28,7 +28,7 @@ public class TileBoard : MonoBehaviour
 
     private void CreateTile()
     {
-        Tile tile = Instantiate(tilePrefab, grid.transform);
+        Tile tile = Instantiate(tilePrefab, grid.transform.parent.parent);
         
         tile.SetState(tileStates[0], 2);
     }
