@@ -1,43 +1,59 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Security.Cryptography;
 using UnityEditor.Tilemaps;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 public class TileBoard : MonoBehaviour
 {
+    public GameManager gameManager;
     public Tile tilePrefab;
     public TileState[] tileStates;
 
     private TileGrid grid;
     private List<Tile> tiles;
     private bool waiting;
-
-
     private void Awake()
     {
         grid = GetComponentInChildren<TileGrid>();
         tiles = new List<Tile>(16);
 
     }
-    private void Start()
+    
+    public void ClearBoard()
     {
-        CreateTile();
-        CreateTile();
+        foreach(var cell in grid.cells)
+        {
+            cell.tile = null;
+        }
+        foreach(var tile in tiles){
+            Destroy(tile.gameObject);
+        }
+        tiles.Clear();
     }
 
-    private void CreateTile()
+    public void CreateTile()
     {
         Tile tile = Instantiate(tilePrefab, grid.transform.parent.parent);
-        
+
         tile.SetState(tileStates[0], 2);
         tile.Spawn(grid.GetRandomEmptyCell());
         tiles.Add(tile);
     }
+
     public void Update()
     {
+        //Debug
+        if(Input.GetKeyDown(KeyCode.E))
+        {
+            Debug.Log("END");
+            gameManager.GameOver();
+        }
+        //Debug
         if (!waiting)
         {
             if (Input.GetKeyDown(KeyCode.W))
@@ -88,7 +104,11 @@ public class TileBoard : MonoBehaviour
         {
             if (adjacent.occupied)
             {
-                //TODO: merging
+                if (CanMarge(tile, adjacent.tile))
+                {
+                    Merge(tile, adjacent.tile);
+                    return true;
+                }
                 break;
             }
             newCell = adjacent;
@@ -103,10 +123,83 @@ public class TileBoard : MonoBehaviour
         return false;
         
     }
+    private Boolean CanMarge(Tile a, Tile b)
+    {
+        return a.number == b.number && !b.locked;
+    }
+
+    private void Merge(Tile a, Tile b)
+    {
+        tiles.Remove(a);
+        a.Merge(b.cell);
+
+        int index = Mathf.Clamp(Index0f(b.state) + 1, 0, tileStates.Length - 1);
+        int number = b.number * 2;
+        b.SetState(tileStates[index], number);
+    }
+
+    private int Index0f(TileState state)
+    {
+        for(int i = 0; i < tileStates.Length; i++)
+        {
+            if(state == tileStates[i])
+            {
+                return i;
+
+            }
+        }
+        return -1;
+    }
+
     private IEnumerator WaitForchanges()
     {
         waiting = true;
         yield return new WaitForSeconds(0.1f);
         waiting = false;
+        foreach(var tile in tiles)
+        {
+            tile.locked = false;
+        }
+
+        if(tiles.Count != grid.size)
+        {
+            CreateTile();
+        }
+
+        if (CheckForGameOver())
+        {
+            gameManager.GameOver();
+        }
+    }
+    private bool CheckForGameOver()
+    {
+        if(tiles.Count != grid.size)
+        {
+            return false;
+        }
+        foreach(var tile in tiles)
+        {
+            TileCell up = grid.GetAdjacentCell(tile.cell, Vector2Int.up);
+            TileCell down = grid.GetAdjacentCell(tile.cell, Vector2Int.down);
+            TileCell left = grid.GetAdjacentCell(tile.cell, Vector2Int.left);
+            TileCell right = grid.GetAdjacentCell(tile.cell, Vector2Int.right);
+            if(up != null && CanMarge(tile, up.tile))
+            {
+                return false;
+            }
+            if(down != null && CanMarge(tile, down.tile))
+            {
+                return false;
+            }
+            if (left != null && CanMarge(tile, left.tile))
+            {
+                return false;
+            }
+            if (right != null && CanMarge(tile, right.tile))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }
